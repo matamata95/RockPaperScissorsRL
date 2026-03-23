@@ -1,6 +1,11 @@
 import pickle
 import numpy as np
 from RPS_env import RPS_env
+from agents.q_learning_agent import QLearningAgent
+
+
+BEST_OF_GAMES = 3
+BUFFER_SIZE = 5
 
 
 def human_input():
@@ -20,7 +25,7 @@ def state_to_key(state1, state2):
     return state1 * 1 + state2 * 3
 
 
-def human_vs_q(q_path="q_table_AIvsAI.pkl"):
+def human_vs_q(q_path="tables/q_table.pkl"):
     try:
         with open(q_path, "rb") as f:
             q_dict = pickle.load(f)
@@ -29,7 +34,7 @@ def human_vs_q(q_path="q_table_AIvsAI.pkl"):
               f"Please train the agent first.")
         return
 
-    env = RPS_env()
+    env = RPS_env(best_of_games=BEST_OF_GAMES, buffer_size=BUFFER_SIZE)
     player_1_counter = 0
     player_2_counter = 0
     num_of_ties = 0
@@ -46,17 +51,18 @@ def human_vs_q(q_path="q_table_AIvsAI.pkl"):
             continue
 
         human_move = move_mapping[player_input]
-        previous_state = env.get_previous_observation()
+        history = env.get_history()
         try:
-            state_key = state_to_key(previous_state[0], previous_state[1])
-            q_values = q_dict.get(state_key, [0, 0, 0])
+            history_key = QLearningAgent.history_to_key(history)
+            q_values = q_dict.get(history_key, [0, 0, 0])
             ai_move = int(np.argmax(q_values))  #
         except Exception:
-            print("First move is random, due to not having previous state.")
             ai_move = int(np.random.choice([0, 1, 2]))
+        next_state = [ai_move, human_move]
 
-        obs, reward, done, info = env.step(ai_move, human_move)
+        obs, reward, done, info = env.step(next_state)
         env.render()
+        print(f"History: {history}")
         if done:
             winner_info = info.get("winning player ", "No winner info")
             if winner_info == 1:
@@ -70,9 +76,6 @@ def human_vs_q(q_path="q_table_AIvsAI.pkl"):
                   f"Human player wins - {player_2_counter}, "
                   f"Ties - {num_of_ties}")
             env.reset()
-        else:
-            num_of_ties += 1
-            print("Game over! It's a tie!")
 
 
 if __name__ == "__main__":

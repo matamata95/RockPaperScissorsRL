@@ -32,7 +32,7 @@ def train(episodes=2000,
 
     for ep in range(1, episodes + 1):
         env.reset()
-        previous_state = env.get_previous_observation()
+        previous_state = env.get_previous_state()
         done = False
         while not done:
             try:

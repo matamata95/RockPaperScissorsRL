@@ -1,21 +1,31 @@
 import copy
+from collections import deque
 
 
 class RPS_env:
-    def __init__(self):
-        self.previous_state = [None, None]
+    def __init__(self, best_of_games=3, buffer_size=5):
+        self.best_of_games = best_of_games
+        self.buffer_size = buffer_size
+        self.player_1_wins = 0
+        self.player_2_wins = 0
         self.reset()
 
     def reset(self):
+        # Inteded to reset after X amount of games are played
         self.state = [None, None]
-        self.done = False
-        return self.get_observation()
+        self.history = deque([[None, None]] * self.buffer_size,
+                             maxlen=self.buffer_size)
+        self.player_1_wins = 0
+        self.player_2_wins = 0
 
-    def get_observation(self):
+        self.done = False
+        return self.get_history()
+
+    def get_state(self):
         return copy.copy(self.state)
 
-    def get_previous_observation(self):
-        return copy.copy(self.previous_state)
+    def get_history(self):
+        return copy.copy(self.history)
 
     def available_actions(self):
         return [0, 1, 2]
@@ -28,9 +38,12 @@ class RPS_env:
         if action == "scissors":
             return 2
 
-    def step(self, action0, action1):
+    def step(self, state):
         if self.done:
             raise ValueError("Game is over.")
+
+        action0 = state[0]
+        action1 = state[1]
 
         if action0 in ["rock", "paper", "scissors"]:
             action0 = self.action_mapping(action0)
@@ -38,33 +51,44 @@ class RPS_env:
             action1 = self.action_mapping(action1)
 
         if action0 not in list(range(3)) or action1 not in list(range(3)):
-            raise ValueError("Invalid action. Choose values from "
+            raise ValueError(f"Invalid action. Action0: {action0}, "
+                             f"Action1: {action1}. Choose values from "
                              "[0, 1, 2] or ['rock', 'paper', 'scissors'].")
 
-        self.previous_state = copy.copy(self.state)
         self.state[0] = action0  # Player 1 action
         self.state[1] = action1  # Player 2 action
+        self.history.append(copy.copy(self.state))
 
         winner = self._check_winner()
-        if winner == 1:
-            self.done = True
-            reward = 1
-            info = {"winning player ": winner}
-            return self.get_observation(), reward, self.done, info
+
+        # X amount of games won implementation is needed
+        to_win = self.best_of_games // 2 + 1
+        if winner == 0:
+            reward = -0.05  # Small penalty for each tie
+            info = {"Game is tied."}
+            return self.get_history(), reward, False, info
+        elif winner == 1:
+            self.player_1_wins += 1
+            reward = 0.5
+            if self.player_1_wins >= to_win:
+                self.done = True
+                reward = 5
+                info = {"winning player ": winner}
+                return self.get_history(), reward, True, info
         elif winner == 2:
-            self.done = True
-            reward = -1
-            info = {"winning player ": winner}
-            return self.get_observation(), reward, self.done, info
-        elif winner == 0:
-            reward = -0.05  # Small penalty for each move
-            info = {"winning player ": winner}
-            return self.get_observation(), reward, self.done, info
-        raise ValueError("Unexpected error in determining the winner.")
+            self.player_2_wins += 1
+            reward = -0.5
+            if self.player_2_wins >= to_win:
+                self.done = True
+                reward = -5
+                info = {"winning player ": winner}
+                return self.get_history(), reward, True, info
+        # In case the game is not done, we return the current state and reward
+        return self.get_history(), reward, False, {}
 
     def _check_winner(self):
         """
-        Determines the winner of the game.
+        Determines the winner. Best of buffer_size games are played.
             Returns:
                 0 if it's a tie,
                 1 if Player 1 wins,
