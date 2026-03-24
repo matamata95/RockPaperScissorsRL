@@ -4,15 +4,9 @@ from RPS_env import RPS_env
 from agents.q_learning_agent import QLearningAgent
 
 
-def state_to_key(state1, state2):
-    """
-    Converting the state to a unique key for Q-table indexing.
-    States have values:
-        0 for Rock,
-        1 for Paper,
-        2 for Scissors.
-    """
-    return state1 * 1 + state2 * 3
+BEST_OF_GAMES = 3
+BUFFER_SIZE = 5
+PLAYER = -1  # Train as Player 2 to reverse reward structure
 
 
 def train(episodes=2000,
@@ -20,7 +14,9 @@ def train(episodes=2000,
           gamma=0.99,
           epsilon=0.1,
           q_path="tables/q_table.pkl"):
-    env = RPS_env()
+    env = RPS_env(best_of_games=BEST_OF_GAMES,
+                  buffer_size=BUFFER_SIZE,
+                  player=PLAYER)
     agent = QLearningAgent(alpha=alpha, gamma=gamma, epsilon=epsilon)
 
     try:
@@ -32,14 +28,14 @@ def train(episodes=2000,
 
     for ep in range(1, episodes + 1):
         env.reset()
-        previous_state = env.get_previous_state()
+        history = env.get_history()
         done = False
         while not done:
             try:
-                state_key = state_to_key(previous_state[0], previous_state[1])
-                q_values = q_dict.get(state_key, [0, 0, 0])
+                history_key = QLearningAgent.history_to_key(history)
+                q_values = q_dict.get(history_key, [0, 0, 0])
                 if np.allclose(q_values, q_values[0]):
-                    # If all Q-values are the same, choose randomly
+                    # If all Q-values are similar, choose randomly
                     ai_move = int(np.random.choice(env.available_actions()))
                 else:
                     ai_move = int(np.argmax(q_values))  #
@@ -48,18 +44,18 @@ def train(episodes=2000,
                 ai_move = int(np.random.choice([0, 1, 2]))
 
             # Player 1 selects an action using the Q-learning agent
-            a0 = agent.select_action(previous_state, env.available_actions())
-            # Player 2 selects an action using the random agent
-            a1 = ai_move
+            a0 = ai_move
+            a1 = agent.select_action(history, env.available_actions())
+            next_state = [a0, a1]
 
-            next_state, r, terminated, info = env.step(a0, a1)
+            history, r, terminated, info = env.step(next_state)
+
             if terminated:
-                agent.update(previous_state, a0, r, terminated)
+                agent.update(history, a0, r, terminated)
                 break
             # When the game is tied the game continues
-            agent.update(previous_state, a0, r,
+            agent.update(history, a0, r,
                          terminated, next_state, env.available_actions())
-            previous_state = next_state
 
         if not ep % 200:
             print(f"Episode {ep}/{episodes} completed.")

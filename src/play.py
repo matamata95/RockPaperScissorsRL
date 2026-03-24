@@ -4,8 +4,10 @@ from RPS_env import RPS_env
 from agents.q_learning_agent import QLearningAgent
 
 
-BEST_OF_GAMES = 3
+BEST_OF_GAMES = 5
 BUFFER_SIZE = 5
+# Index of a human player, 0 for player 1, 1 for player 2.
+HUMAN_PLAYER = 1
 
 
 def human_input():
@@ -14,18 +16,8 @@ def human_input():
     return player_input
 
 
-def state_to_key(state1, state2):
-    """
-    Converting the state to a unique key for Q-table indexing.
-    States have values:
-        0 for Rock,
-        1 for Paper,
-        2 for Scissors.
-    """
-    return state1 * 1 + state2 * 3
-
-
-def human_vs_q(q_path="tables/q_table.pkl"):
+def human_vs_q(q_path="tables/q_table_AIvsAI.pkl"):
+    global HUMAN_PLAYER
     try:
         with open(q_path, "rb") as f:
             q_dict = pickle.load(f)
@@ -58,7 +50,11 @@ def human_vs_q(q_path="tables/q_table.pkl"):
             ai_move = int(np.argmax(q_values))  #
         except Exception:
             ai_move = int(np.random.choice([0, 1, 2]))
-        next_state = [ai_move, human_move]
+
+        if HUMAN_PLAYER:
+            next_state = [ai_move, human_move]
+        else:
+            next_state = [human_move, ai_move]
 
         obs, reward, done, info = env.step(next_state)
         env.render()

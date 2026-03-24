@@ -23,8 +23,6 @@ def train(episodes=2000, alpha=0.1, gamma=0.99, epsilon=0.1,
     agent = QLearningAgent(alpha=alpha, gamma=gamma, epsilon=epsilon)
     opponent_classes = [RandomAgent, PlayPreviousAgent, WinStayAgent]
 
-
-# Need to implement a reset after X amount of games
     for ep in range(1, episodes + 1):
         env.reset()
         opp = random.choice(opponent_classes)()  # Randomly select an opp agent
@@ -33,12 +31,9 @@ def train(episodes=2000, alpha=0.1, gamma=0.99, epsilon=0.1,
             round = 1
             history = env.get_history()
             while not done:
-                # Player 1 selects an action using the Q-learning agent
                 a0 = agent.select_action(history, env.available_actions())
-                # Player 2 selects an action using the opponent agent
                 a1 = opp.select_action(history, env.available_actions())
-
-                next_state = [a0, a1]
+                next_state = [a0, a1]  # Agent action is a0
 
                 history, r, done, info = env.step(next_state)
 
@@ -58,7 +53,7 @@ def train(episodes=2000, alpha=0.1, gamma=0.99, epsilon=0.1,
                 agent.update(history, a0, r,
                              done, next_state, env.available_actions())
 
-            if not ep % 200:
+            if not ep % 1000:
                 print(f"Episode {ep}/{episodes} completed.")
 
     # Save Q-table
@@ -67,4 +62,7 @@ def train(episodes=2000, alpha=0.1, gamma=0.99, epsilon=0.1,
 
 
 if __name__ == "__main__":
-    train(episodes=10**5, verbose=False)
+    best_of_games = 3
+    buffer_size = 2
+    train(episodes=10**5, best_of_games=best_of_games,
+          buffer_size=buffer_size, verbose=False)

@@ -33,14 +33,21 @@ class WinStayAgent:
 
     def select_action(self, history, available_actions):
         # Assumes that WinStayAgent is Player 2
+        if not any(x is not None for x in history[-1]):
+            # If history contains only None values, we are at the beginning of
+            # the game, so we choose a random action to start the game
+            return int(np.random.choice(available_actions))
+
         if self._check_winner(history) == 1:
             # If the agent lost the previous round, # it will switch to the
             # action that beats the opponent's previous action
             return history[-1][0]
+
         elif self._check_winner(history) == 2:
             # If the agent won the previous round,
             # it will repeat the same action
             return history[-1][1]
+
         else:
             # If the previous round was a tie, the agent will choose a random
             # action from the available actions
