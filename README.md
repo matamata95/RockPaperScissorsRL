@@ -35,8 +35,8 @@ Recommended: create the conda environment in `requirements/environment.yml`:
 - Rewards depending on the Best-Of-Games played, where a win/loss in a round is +1/-1, where as the win/loss of a game is +5/-5.
 - Set random seeds in the training scripts for reproducibility.
 - Explainability is achieved with SHAP by training a decision tree regression model for each action. Features are derived from history buffer and formatted in the following way: 'h{i}_p{j}_R/P/S'. h{i} corresponds to a place in the history buffer (how long ago this hand was played) where the lower numbers are oldest actions, since it was implemented with deque:  
-    -buffer_size == 2:  
-        - h0_p1_rock = player 1 played a rock 2 rounds ago | h ∈ [buffer_size]  
+    E.g. buffer_size == 2:  
+        - h0_p1_rock = player 1 played a rock 2 rounds ago | h ∈ [0, buffer_size - 1]  
         - h1_p2_paper = player 2 played paper last round | p ∈ [1, 2]
 - This is a personal project to get accustomed to reinforcement-learning and explainability implementations.
 
