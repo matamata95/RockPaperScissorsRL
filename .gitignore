@@ -1,2 +1,5 @@
-__pycache__
-test_script.py
+*.pyc
+src/__pycache__/
+src/agents/__pycache__/
+src/test_script.py
+*.pyc
