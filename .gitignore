@@ -1,5 +1,6 @@
+.vscode
 *.pyc
 src/__pycache__/
 src/agents/__pycache__/
 src/test_script.py
-*.pyc
+
