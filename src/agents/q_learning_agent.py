@@ -2,14 +2,6 @@ import numpy as np
 from collections import defaultdict
 
 
-def state_to_key(state):
-    """
-    Convert the state to a unique key for Q-table indexing.
-    0 for Rock, 1 for Paper, 2 for Scissors.
-    """
-    return state[0] * 1 + state[1] * 3
-
-
 def history_to_key(history_deque):
     """
     Converts the history of states from deque into a single tuple key
@@ -18,11 +10,6 @@ def history_to_key(history_deque):
         Output: (0, 1, 1, 2, 2, 0)
     """
     return tuple(x for round_state in history_deque for x in round_state)
-
-
-# TODO: Implement history buffer for action selection
-# UPDATE state_to_key to handle all states
-# REMOVE previous_state as its being replace by history buffer
 
 
 class QLearningAgent:
