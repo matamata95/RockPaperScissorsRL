@@ -14,7 +14,7 @@ This repository implements a minimal RPS environment, several baseline agents, t
 
 ## Quick setup
 
-Recommended: create the conda environment in `requirements/environment.yml`:
+Recommended: create the conda environment in `requirements/environment.yml`.
 
 ## Project layout
 

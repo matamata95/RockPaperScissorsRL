@@ -1,6 +1,17 @@
+# Ignore custom GitHub Copilot agent and its SHAP implementation
+.agent.md
+src/agent_explain_shap.py
+
+# Ignore Visual Studio Code settings
 .vscode
-*.pyc
-src/__pycache__/
-src/agents/__pycache__/
+
+# Ignore random scripts
 src/test_script.py
 
+# Ignore plot directory
+plots/
+
+# Ignore bytecode directories
+__pycache__/
+src/__pycache__/
+src/agents/__pycache__/
