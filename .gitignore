@@ -8,8 +8,8 @@ src/agent_explain_shap.py
 # Ignore random scripts
 src/test_script.py
 
-# Ignore plot directory
-plots/
+# Ignore single states plot directory
+plots/single_states/
 
 # Ignore bytecode directories
 __pycache__/
